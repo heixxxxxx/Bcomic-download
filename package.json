@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "jsdom": "^24.0.0",
     "node-fetch": "^2.6.0",
     "xhr2": "^0.2.1"
   }
 }
+

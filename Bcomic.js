@@ -7,6 +7,13 @@ let epName = ""
 let ep_list = []
 let ep_no = ''
 let allPage = 0
+var ep_name_type = 0
+
+//文件夹命名过滤
+function sanitizeFolderName(folderName) {
+  const forbiddenChars = /[\\/:*?"<>|]/g;
+  return folderName.replace(forbiddenChars, '');
+}
 // 下载保存
 function download(url, index, page) {
   let name = index >= 10 ? index : "0" + index
@@ -58,15 +65,17 @@ function getImageIndex(ep_id) {
     "headers": {
       "content-type": "application/json;charset=UTF-8",
       "cookie": cookie,
-      "referrerPolicy": "strict-origin-when-cross-origin",
-      "body": JSON.stringify({ ep_id }),
-      "method": "POST",
-      "mode": "cors",
-      "credentials": "include"
-    }
-  })
+    },
+    "referrerPolicy": "strict-origin-when-cross-origin",
+    "body": JSON.stringify({ ep_id }),
+    "mode": "cors",
+    "method": "POST",
+    "credentials": "include"
+  }
+  )
     .then(response => response.json())
     .then(data => {
+
       console.log("共" + data.data.images.length + "p")
       getImgToken(data.data.images)
     })
@@ -90,8 +99,17 @@ function getInfo() {
     "credentials": "include"
   }).then(response => response.json())
     .then(data => {
-      epName = data.data.short_title
-        + "-" + data.data.title
+
+      switch (ep_name_type) {
+        case 0: epName = data.data.short_title
+          + "-" + data.data.title; break;
+        case 1: epName = data.data.short_title; break;
+        case 2: epName = data.data.title; break;
+        default: epName = data.data.short_title
+          + "-" + data.data.title;
+      }
+      epName = sanitizeFolderName(epName)
+
       fs.stat(docName + "/" + epName, function (exists) {
         if (exists) {
           fs.mkdir(docName + "/" + epName, function (err) {
@@ -123,8 +141,16 @@ function getEpInfo() {
     .then(data => {
       console.log(ep_list[ep_list.length - ep_no])
 
-      epName = data.data.short_title
-        + "-" + data.data.title
+      switch (ep_name_type) {
+        case 0: epName = data.data.short_title
+          + "-" + data.data.title; break;
+        case 1: epName = data.data.short_title; break;
+        case 2: epName = data.data.title; break;
+        default: epName = data.data.short_title
+          + "-" + data.data.title;
+      }
+      epName = sanitizeFolderName(epName)
+
       fs.stat(docName + "/" + epName, function (exists) {
         if (exists) {
           fs.mkdir(docName + "/" + epName, function (err) {
@@ -151,7 +177,7 @@ function getComicInfo(comic_id) {
     "credentials": "include"
   }).then(response => response.json())
     .then(data => {
-      docName = data.data.title
+      docName = sanitizeFolderName(data.data.title)
       ep_list = data.data.ep_list
       fs.stat(docName, function (exists) {
         if (exists) {
@@ -180,13 +206,19 @@ const readline = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
 })
+
 readline.question(`cookie:`, cookieData => {
   cookie = cookieData
   readline.question(`comicId:`, comic_id => {
     readline.question(`话数（不填写为全部下载）:`, ep => {
       ep_no = ep
-      getComicInfo(comic_id)
-      readline.close()
+      readline.question(`集数命名（默认为：集数-名称，输入1：仅集数，输入2：仅名称）:`, ep_type => {
+        ep_name_type = ep_type * 1
+        getComicInfo(comic_id)
+        readline.close()
+      })
+
+
     })
   })
 })
