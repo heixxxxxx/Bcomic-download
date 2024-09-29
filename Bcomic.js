@@ -123,7 +123,6 @@ function getEpInfo() {
     .then(data => {
       console.log(ep_list[ep_list.length - ep_no])
 
-
       epName = data.data.short_title
         + "-" + data.data.title
       fs.stat(docName + "/" + epName, function (exists) {
