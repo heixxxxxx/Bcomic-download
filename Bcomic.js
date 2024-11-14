@@ -217,8 +217,6 @@ readline.question(`cookie:`, cookieData => {
         getComicInfo(comic_id)
         readline.close()
       })
-
-
     })
   })
 })
